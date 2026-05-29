@@ -40,7 +40,7 @@ window.BDAY = {
     },
     {
       id: "kayak",
-      time: "11:00 AM",
+      time: "11:20 AM",
       title: "Kayaking",
       place: "Half Moon Bay Kayaking",
       note: "Surprise! If it all works out we will be on the water with Piper.",
