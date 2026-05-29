@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f4e5e5" />
+<title>Tina's Birthday</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: oklch(0.984 0.007 350);
+    --card: #ffffff;
+    --ink: oklch(0.32 0.025 350);
+    --muted: oklch(0.58 0.022 350);
+    --faint: oklch(0.70 0.02 350);
+    /* Sage palette (locked in) */
+    --rose: oklch(0.60 0.075 158);
+    --rose-deep: oklch(0.46 0.08 158);
+    --blush: oklch(0.93 0.035 150);
+    --peach: oklch(0.93 0.04 110);
+    --line: oklch(0.90 0.012 350);
+    --serif: "Cormorant Garamond", Georgia, serif;
+    --sans: "Manrope", system-ui, sans-serif;
+    --mono: "DM Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(120% 80% at 50% 0%, oklch(0.95 0.02 350), oklch(0.93 0.012 350));
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    font-family: var(--sans);
+  }
+
+  /* ===== phone / app shell ===== */
+  .bday-app {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: var(--sans);
+    color: var(--ink);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    box-shadow: 0 0 1px oklch(0.5 0.05 350 / 0.25), 0 30px 90px -40px oklch(0.5 0.1 350 / 0.55);
+  }
+  .scroll {
+    position: relative;
+    z-index: 2;
+    padding: 30px 22px 26px;
+  }
+
+  /* ===== background blobs ===== */
+  .bg-waves { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+  .blob { position: absolute; filter: blur(14px); opacity: 0.8; border-radius: 50%; }
+  .blob-1 {
+    width: 280px; height: 260px; top: -90px; right: -70px;
+    background: radial-gradient(circle at 35% 35%, var(--blush), transparent 70%);
+    border-radius: 47% 53% 60% 40% / 52% 44% 56% 48%;
+    opacity: 0.95;
+  }
+  .blob-2 {
+    width: 320px; height: 320px; bottom: -120px; left: -110px;
+    background: radial-gradient(circle at 50% 50%, var(--peach), transparent 68%);
+    border-radius: 58% 42% 45% 55% / 50% 56% 44% 50%;
+    opacity: 0.8;
+  }
+  .blob-3 {
+    width: 200px; height: 200px; top: 44%; right: -90px;
+    background: radial-gradient(circle at 50% 50%, var(--blush), transparent 70%);
+    opacity: 0.55;
+  }
+
+  /* ===== hero ===== */
+  .hero {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; margin-bottom: 26px;
+  }
+  .hero-text { flex: 1; min-width: 0; }
+  .hero-title {
+    font-family: var(--serif); font-weight: 600; font-size: 40px;
+    line-height: 0.97; letter-spacing: -0.01em; margin: 0; color: var(--ink);
+  }
+  .hero-date {
+    margin-top: 10px; font-family: var(--mono); font-size: 13px;
+    letter-spacing: 0.16em; color: var(--muted);
+  }
+  .avatar-ring {
+    flex: none; border-radius: 50%; padding: 4px;
+    background: linear-gradient(150deg, var(--blush), var(--peach));
+    box-shadow: 0 10px 26px -8px oklch(0.50 0.10 158 / 0.5);
+  }
+  .avatar-ring image-slot { border-radius: 50%; overflow: hidden; }
+  .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+  .hero--sealed .hero-title { font-size: 46px; }
+
+  /* ===== section label ===== */
+  .list-head {
+    display: flex; align-items: center; gap: 12px; margin: 4px 2px 18px;
+  }
+  .list-head-line { flex: 1; height: 1px; background: var(--line); }
+  .list-head-label {
+    font-family: var(--serif); font-style: italic; font-size: 17px;
+    color: var(--rose-deep); letter-spacing: 0.01em;
+  }
+
+  /* ===== shared list ===== */
+  .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 13px; }
+
+  .card {
+    background: var(--card); border-radius: 22px; cursor: default;
+    box-shadow: 0 1px 2px oklch(0.5 0.05 350 / 0.05), 0 14px 30px -22px oklch(0.5 0.08 350 / 0.5);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+  .card.is-unlocked { cursor: pointer; }
+  .card.is-locked { background: oklch(0.99 0.006 350); }
+
+  /* lock glyph */
+  .lock { position: relative; width: 15px; height: 17px; display: inline-block; color: var(--faint); }
+  .lock::before {
+    content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 9px; height: 9px; border: 2px solid currentColor; border-bottom: none;
+    border-radius: 5px 5px 0 0; transition: transform 0.3s ease;
+  }
+  .lock::after {
+    content: ""; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 15px; height: 10px; background: currentColor; border-radius: 3px;
+  }
+  .lock--open { color: var(--rose); }
+  .lock--open::before { transform: translateX(-115%) rotate(-22deg); transform-origin: bottom right; }
+
+  /* chevron */
+  .chev {
+    width: 8px; height: 8px; border-right: 2px solid var(--rose);
+    border-bottom: 2px solid var(--rose); transform: rotate(45deg);
+    transition: transform 0.3s ease; margin-top: -3px;
+  }
+  .is-open .chev { transform: rotate(-135deg); margin-top: 3px; }
+
+  /* reveal block (mounted only when open). Animate transform ONLY — never
+     opacity/height — so content is never hidden even if a frame stalls. */
+  .reveal { animation: revealIn 0.42s cubic-bezier(0.22,0.61,0.36,1) both; }
+  @keyframes revealIn {
+    from { transform: translateY(-6px); }
+    to { transform: none; }
+  }
+  .reveal-place {
+    font-family: var(--serif); font-style: italic; font-size: 18px;
+    color: var(--rose-deep); margin: 2px 0 6px;
+  }
+  .reveal-note { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--muted); text-wrap: pretty; }
+
+  /* ===== locked body (blank — countdown only) ===== */
+  .locked-body { display: flex; align-items: center; gap: 11px; }
+  .locked-count { display: flex; flex-direction: row; align-items: baseline; gap: 9px; }
+  .count-label {
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint);
+    white-space: nowrap;
+  }
+  .count-time {
+    font-family: var(--mono); font-size: 17px; letter-spacing: 0.04em; color: var(--rose-deep);
+    font-variant-numeric: tabular-nums; line-height: 1.1;
+  }
+  .count-time em { font-style: normal; color: var(--ink); font-weight: 500; }
+  .is-locked .lock { width: 17px; height: 19px; }
+
+  /* shake on locked tap */
+  @keyframes nudge {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); } 40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); } 80% { transform: translateX(3px); }
+  }
+  .nudge { animation: nudge 0.4s ease; }
+
+  /* ===== Variant A: soft ===== */
+  .soft-card { padding: 16px 18px; }
+  .soft-card.is-locked { padding: 15px 18px; }
+  .soft-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .soft-meta { flex: 1; min-width: 0; }
+  .soft-time {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--rose); display: block;
+  }
+  .soft-title { font-family: var(--serif); font-weight: 600; font-size: 22px; line-height: 1.1; margin: 3px 0 0; }
+  .soft-head .chev { flex: none; margin-top: 7px; }
+  .reveal--soft { padding-top: 10px; }
+
+  /* footer */
+  .foot {
+    margin-top: 26px; text-align: center; font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--faint);
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+
+<script src="confetti.js"></script>
+<script src="data.js"></script>
+<script type="text/babel" src="itinerary.jsx"></script>
+<script type="text/babel">
+  function App() {
+    return <ItineraryApp variant="soft" />;
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
