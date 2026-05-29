@@ -14,14 +14,21 @@ window.BDAY = {
   // see the next item further ahead of time.
   revealLeadMinutes: 15,
   items: [
+     {
+      id: "beauty",
+      time: "10:00 PM",
+      title: "Beauty Sleep",
+      place: "Solidcore",
+      note: "Bday Girl gotta get her beauty sleep",
+      startsAt: "2026-05-28T22:00:00",
+    },
     {
       id: "pilates",
       time: "6:00 AM",
       title: "Birthday Pilates",
       place: "Solidcore",
       note: "Gotta start my bday off right with some pilates.",
-      startsAt: "2026-05-289T22:00:00-07:00",
-      //startsAt: "2026-05-29T06:00:00-07:00",
+      startsAt: "2026-05-29T06:00:00-07:00",
     },
     {
       id: "matcha",
