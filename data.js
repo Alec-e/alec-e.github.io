@@ -20,7 +20,8 @@ window.BDAY = {
       title: "Birthday Pilates",
       place: "Solidcore",
       note: "Gotta start my bday off right with some pilates.",
-      startsAt: "2026-05-29T06:00:00-07:00",
+      startsAt: "2026-05-289T22:00:00-07:00",
+      //startsAt: "2026-05-29T06:00:00-07:00",
     },
     {
       id: "matcha",
