@@ -36,6 +36,10 @@
     justify-content: center;
     font-family: var(--sans);
   }
+  /* #root is the React mount point. Make it fill the body and center the app
+     itself; otherwise it shrinks to its content's intrinsic width and the whole
+     layout shifts horizontally each time a card opens (content width changes). */
+  #root { width: 100%; display: flex; justify-content: center; }
 
   /* ===== phone / app shell ===== */
   .bday-app {
