@@ -44,7 +44,7 @@ window.BDAY = {
       title: "Kayaking",
       place: "Half Moon Bay Kayaking",
       note: "Surprise! If it all works out we will be on the water with Piper.",
-      startsAt: "2026-05-29T11:00:00-07:00",
+      startsAt: "2026-05-29T11:20:00-07:00",
     },
     {
       id: "lunch",
