@@ -39,9 +39,22 @@ function useNow() {
   }, []);
   return now;
 }
-function Countdown({ revealAt }) {
+/* Tick-driven unlock: when the countdown's remaining ms crosses zero, fire the
+   onCross callback exactly once. This is the reliable backstop — iOS Safari
+   kills one-shot setTimeouts when the tab is backgrounded or the phone sleeps,
+   so the parent can't depend on a pre-scheduled timer to flip state. The
+   per-second tick resumes on tab refocus and catches the crossover within ~1s. */
+function Countdown({ revealAt, onCross }) {
   const now = useNow();
-  return <CountTime c={fmt(revealAt - now)} />;
+  const ms = revealAt - now;
+  const crossedRef = useRef(false);
+  useEffect(() => {
+    if (ms <= 0 && !crossedRef.current) {
+      crossedRef.current = true;
+      onCross && onCross();
+    }
+  }, [ms <= 0, onCross]);
+  return <CountTime c={fmt(ms)} />;
 }
 
 /* CSS-drawn lock glyph */
@@ -84,7 +97,7 @@ function calcProgress(loadTime, revealAt, now) {
 }
 
 /* ===== Variant A: soft ===== */
-function SoftCard({ item, unlocked, open, revealAt, onTap, cardRef }) {
+function SoftCard({ item, unlocked, open, revealAt, onTap, onAutoUnlock, cardRef }) {
   return (
     <li ref={cardRef}
       className={"card soft-card" + (unlocked ? " is-unlocked" : " is-locked") + (open ? " is-open" : "")}
@@ -108,7 +121,7 @@ function SoftCard({ item, unlocked, open, revealAt, onTap, cardRef }) {
           <Lock />
           <div className="locked-count">
             <span className="count-label">unlocks in</span>
-            <Countdown revealAt={revealAt} />
+            <Countdown revealAt={revealAt} onCross={onAutoUnlock} />
           </div>
         </div>
       )}
@@ -117,7 +130,7 @@ function SoftCard({ item, unlocked, open, revealAt, onTap, cardRef }) {
 }
 
 /* ===== Variant B: timeline ===== */
-function TimelineCard({ item, unlocked, open, revealAt, onTap, cardRef }) {
+function TimelineCard({ item, unlocked, open, revealAt, onTap, onAutoUnlock, cardRef }) {
   return (
     <li ref={cardRef} className={"tl-row" + (unlocked ? " is-unlocked" : " is-locked")}>
       <div className="tl-rail"><span className="tl-node">{unlocked && <span className="tl-dot" />}</span></div>
@@ -139,7 +152,7 @@ function TimelineCard({ item, unlocked, open, revealAt, onTap, cardRef }) {
             <Lock />
             <div className="locked-count">
               <span className="count-label">unlocks in</span>
-              <Countdown revealAt={revealAt} />
+              <Countdown revealAt={revealAt} onCross={onAutoUnlock} />
             </div>
           </div>
         )}
@@ -159,8 +172,16 @@ function Ring({ progress }) {
     </svg>
   );
 }
-function SealedLocked({ revealAt, loadTime }) {
+function SealedLocked({ revealAt, loadTime, onCross }) {
   const now = useNow();
+  const ms = revealAt - now;
+  const crossedRef = useRef(false);
+  useEffect(() => {
+    if (ms <= 0 && !crossedRef.current) {
+      crossedRef.current = true;
+      onCross && onCross();
+    }
+  }, [ms <= 0, onCross]);
   return (
     <React.Fragment>
       <div className="sealed-ring">
@@ -169,12 +190,12 @@ function SealedLocked({ revealAt, loadTime }) {
       </div>
       <div className="sealed-meta">
         <span className="count-label">unlocks in</span>
-        <CountTime c={fmt(revealAt - now)} />
+        <CountTime c={fmt(ms)} />
       </div>
     </React.Fragment>
   );
 }
-function SealedCard({ item, unlocked, open, revealAt, loadTime, onTap, cardRef }) {
+function SealedCard({ item, unlocked, open, revealAt, loadTime, onTap, onAutoUnlock, cardRef }) {
   return (
     <li ref={cardRef}
       className={"card sealed-card" + (unlocked ? " is-unlocked" : " is-locked") + (open ? " is-open" : "")}
@@ -199,7 +220,7 @@ function SealedCard({ item, unlocked, open, revealAt, loadTime, onTap, cardRef }
         </React.Fragment>
       ) : (
         <div className="sealed-head">
-          <SealedLocked revealAt={revealAt} loadTime={loadTime} />
+          <SealedLocked revealAt={revealAt} loadTime={loadTime} onCross={onAutoUnlock} />
         </div>
       )}
     </li>
@@ -229,20 +250,21 @@ function ItineraryApp({ variant }) {
       cr.top - fr.top + Math.min(cr.height / 2, 56), { count: 90 });
   }, []);
 
-  // schedule each future unlock once (no per-second re-render of the tree)
-  useEffect(() => {
-    const timers = [];
-    BDAY.items.forEach((it, i) => {
-      const delay = revealAts.current[i] - Date.now();
-      if (delay > 0) {
-        timers.push(setTimeout(() => {
-          setUnlocked((u) => ({ ...u, [it.id]: true }));
-          setOpen((o) => ({ ...o, [it.id]: true }));
-          setTimeout(() => burst(i), 160);
-        }, delay));
-      }
+  /* Auto-unlock: invoked by the Countdown leaf when its remaining ms crosses
+     zero (see Countdown for why we use tick-driven crossover instead of
+     setTimeout). Idempotent — uses functional updates and a "no-op if already
+     unlocked" check so re-fires from re-renders are safe. */
+  const autoUnlock = useCallback((it, i) => {
+    let didFlip = false;
+    setUnlocked((u) => {
+      if (u[it.id]) return u;
+      didFlip = true;
+      return { ...u, [it.id]: true };
     });
-    return () => timers.forEach(clearTimeout);
+    if (didFlip) {
+      setOpen((o) => ({ ...o, [it.id]: true }));
+      setTimeout(() => burst(i), 160);
+    }
   }, [burst]);
 
   const tap = (it, i) => {
@@ -277,6 +299,7 @@ function ItineraryApp({ variant }) {
             <Card key={it.id} item={it} unlocked={!!unlocked[it.id]} open={!!open[it.id]}
               revealAt={revealAts.current[i]} loadTime={loadRef.current}
               onTap={() => tap(it, i)}
+              onAutoUnlock={() => autoUnlock(it, i)}
               cardRef={(el) => (cardRefs.current[i] = el)} />
           ))}
         </ul>
