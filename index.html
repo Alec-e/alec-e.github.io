@@ -194,6 +194,27 @@
   .soft-head .chev { flex: none; margin-top: 7px; }
   .reveal--soft { padding-top: 10px; }
 
+  /* ===== Tap affordances =====
+     Two cues that an unlocked card is interactive:
+       (1) the chevron breathes when the card is closed (stops once open)
+       (2) the whole card scales down 1.5% on press for tactile feedback
+     Both bow out gracefully for prefers-reduced-motion. */
+  @keyframes chev-breathe {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  .soft-card.is-unlocked:not(.is-open) .chev {
+    animation: chev-breathe 2.2s ease-in-out infinite;
+  }
+  .soft-card.is-unlocked {
+    transition: transform 0.14s ease-out, box-shadow 0.3s ease;
+  }
+  .soft-card.is-unlocked:active { transform: scale(0.985); }
+  @media (prefers-reduced-motion: reduce) {
+    .soft-card.is-unlocked:not(.is-open) .chev { animation: none; }
+    .soft-card.is-unlocked:active { transform: none; }
+  }
+
   /* footer */
   .foot {
     margin-top: 26px; text-align: center; font-size: 11px; letter-spacing: 0.12em;
